@@ -1,17 +1,25 @@
-      #container {
-          position: relative;
-          width: 350px;
-          height: 300px;
-          border: 1px solid black;
-      }
+    #container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
 
-      .block {
-          position: absolute;
-          background-color: lightblue;
-          /* Задайте унікальний колір для кожного блоку */
-          border: 1px solid black;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          font-size: 12px;
-      }
+    }
+
+    .block {
+        position: absolute;
+        background-color: lightblue;
+        /* Задайте унікальний колір для кожного блоку */
+        border: 1px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .fullness-text {
+        z-index: 999;
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
