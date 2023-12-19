@@ -19,14 +19,14 @@ function efficientBlockPlacement(blocks, container) {
 
   // Ініціалізуємо змінні для результатів
   let fullness = 0;
-  let blockCoordinates = [];
-  let sizeColors = {}; // Об'єкт для зберігання кольорів за розміром
+  const blockCoordinates = [];
+  const sizeColors = {}; // Об'єкт для зберігання кольорів за розміром
 
   // Вираховуємо координати для кожного блоку
   for (let i = 0; i < blocks.length; i++) {
-    let block = blocks[i];
+    const block = blocks[i];
     let placed = false;
-    let blockHash = getBlockHash(block);
+    const blockHash = getBlockHash(block);
 
     // Перевіряємо, чи у нас вже є колір для цього блоку
     let color = sizeColors[blockHash];
@@ -37,7 +37,7 @@ function efficientBlockPlacement(blocks, container) {
       sizeColors[blockHash] = color;
     }
 
-    let rotations = block.rotation ? [block.rotation, 0] : [0]; // Додаємо 0 градусів для блоків, які не повертаються
+    const rotations = block.rotation ? [block.rotation, 0] : [0]; // Додаємо 0 градусів для блоків, які не повертаються
 
     // Перевіряємо розміщення блока з різними кутами повороту
     for (let rotation of rotations) {
@@ -104,7 +104,7 @@ function blocksOverlap(x, y, block, blockCoordinates) {
 
 // Функція для розрахунку коефіцієнта корисного використання простору
 function calculateFullness(container, blockCoordinates) {
-  let totalArea = container.width * container.height;
+  const totalArea = container.width * container.height;
   let emptyArea = 0;
 
   // Розраховуємо площу порожнин в середині контейнера
@@ -141,7 +141,7 @@ function displayResult(result) {
 }
 
 // Приклад використання
-let blocks = [
+const blocks = [
   { width: 190, height: 90 },
   { width: 190, height: 90 },
   { width: 80, height: 290 },
@@ -170,7 +170,7 @@ let result = efficientBlockPlacement(blocks, container);
 displayResult(result);
 
 // Збереження попередніх блоків
-let previousBlocks = blocks.slice();
+const previousBlocks = blocks.slice();
 
 // Обробник події для перерахунку розташування блоків при зміні розміру вікна
 window.addEventListener('resize', function () {

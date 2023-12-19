@@ -2,7 +2,7 @@
         position: relative;
         width: 100vw;
         height: 100vh;
-
+        border: 1px solid black;
     }
 
     .block {
@@ -17,9 +17,5 @@
     }
 
     .fullness-text {
-        z-index: 999;
         display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
     }
