@@ -1,3 +1,5 @@
+import blocks from '../blocks.json';
+
 function randomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
@@ -116,7 +118,7 @@ const blockStyles = {
   transformOrigin: 'top left',
 };
 
-function rotateCoordinates(x, y, rotation, width, height) {
+function rotateCoordinatesInternal(x, y, rotation, width, height) {
   if (rotation === 90) {
     return { x: y, y: -x, width: height, height: width };
   }
@@ -128,7 +130,7 @@ function displayResult(result) {
 
   const fragment = document.createDocumentFragment();
   result.blockCoordinates.forEach((coord, index) => {
-    const { x, y, width, height } = rotateCoordinates(
+    const { x, y, width, height } = rotateCoordinatesInternal(
       coord.left,
       coord.top,
       coord.rotation,
@@ -159,26 +161,6 @@ function displayResult(result) {
   containerElement.innerHTML = '';
   containerElement.appendChild(fragment);
 }
-
-const blocks = [
-  { width: 190, height: 90 },
-  { width: 190, height: 90 },
-  { width: 80, height: 290 },
-  { width: 70, height: 390 },
-  { width: 160, height: 90 },
-  { width: 160, height: 90 },
-  { width: 50, height: 290 },
-  { width: 40, height: 90 },
-  { width: 30, height: 50 },
-  { width: 20, height: 11 },
-  { width: 10, height: 25 },
-  { width: 15, height: 378 },
-  { width: 25, height: 371 },
-  { width: 35, height: 110 },
-  { width: 95, height: 10 },
-  { width: 85, height: 93 },
-  { width: 75, height: 115 } /* інші блоки */,
-];
 
 const container = {
   width: containerElement.offsetWidth,
