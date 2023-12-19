@@ -29,7 +29,7 @@ function efficientBlockPlacement(blocks, container) {
       sizeColors[blockHash] = color;
     }
 
-    const rotations = block.rotation ? [block.rotation, 0] : [0, 90];
+    const rotations = block.rotation ? [block.rotation, 0, 90] : [0, 90];
 
     for (let rotation of rotations) {
       for (
@@ -54,7 +54,7 @@ function efficientBlockPlacement(blocks, container) {
               bottom: y + (rotation % 180 === 90 ? block.width : block.height),
               initialOrder: i + 1,
               color: color,
-              rotation: rotation, // Додано збереження кута повороту
+              rotation: rotation,
             });
 
             fullness = calculateFullness(container, blockCoordinates);
@@ -82,7 +82,6 @@ function blocksOverlap(x, y, block, blockCoordinates, rotation) {
   for (let i = 0; i < blockCoordinates.length; i++) {
     let coord = blockCoordinates[i];
 
-    // Поворот координат для врахування повороту блоків
     let rotatedCoord = rotateCoordinates(x, y, rotation);
 
     if (
@@ -117,40 +116,37 @@ const blockStyles = {
   transformOrigin: 'top left',
 };
 
-function rotateCoordinates(x, y, rotation) {
+function rotateCoordinates(x, y, rotation, width, height) {
   if (rotation === 90) {
-    return { x: y, y: -x };
+    return { x: y, y: -x, width: height, height: width };
   }
-  return { x, y };
+  return { x, y, width, height };
 }
 
 function displayResult(result) {
   fullnessContainer.textContent = result.fullness;
 
   const fragment = document.createDocumentFragment();
-  result.blockCoordinates.forEach((coord) => {
-    const rotatedCoord = rotateCoordinates(
+  result.blockCoordinates.forEach((coord, index) => {
+    const { x, y, width, height } = rotateCoordinates(
       coord.left,
       coord.top,
-      coord.rotation
+      coord.rotation,
+      coord.right - coord.left,
+      coord.bottom - coord.top
     );
-    const width =
-      coord.rotation === 90
-        ? coord.bottom - coord.top
-        : coord.right - coord.left;
-    const height =
-      coord.rotation === 90
-        ? coord.right - coord.left
-        : coord.bottom - coord.top;
 
     const blockElement = document.createElement('div');
     blockElement.className = 'block';
     blockElement.style.width = `${width}px`;
     blockElement.style.height = `${height}px`;
-    blockElement.style.top = `${rotatedCoord.y}px`;
-    blockElement.style.left = `${rotatedCoord.x}px`;
+    blockElement.style.top = `${y}px`;
+    blockElement.style.left = `${x}px`;
     blockElement.style.background = coord.color;
     blockElement.innerText = coord.initialOrder;
+
+    blockElement.setAttribute('data-width', width);
+    blockElement.setAttribute('data-height', height);
 
     Object.assign(blockElement.style, blockStyles);
     if (coord.rotation === 90) {
@@ -199,12 +195,47 @@ window.addEventListener('resize', function () {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(function () {
     if (containerElement) {
-      containerElement.innerHTML = '';
       container.width = containerElement.offsetWidth;
       container.height = containerElement.offsetHeight;
 
-      previousBlocks.sort((a, b) => b.width * b.height - a.width * a.height);
-      result = efficientBlockPlacement(previousBlocks, container);
+      result = efficientBlockPlacement(blocks, container);
+
+      result.blockCoordinates.forEach((coord, index) => {
+        const blockElement = containerElement.children[index];
+        if (blockElement) {
+          const { x, y, width, height } = rotateCoordinates(
+            coord.left,
+            coord.top,
+            coord.rotation,
+            coord.right - coord.left,
+            coord.bottom - coord.top
+          );
+
+          const originalWidth = parseInt(
+            blockElement.getAttribute('data-width'),
+            10
+          );
+          const originalHeight = parseInt(
+            blockElement.getAttribute('data-height'),
+            10
+          );
+
+          blockElement.style.width = `${Math.max(originalWidth, width)}px`;
+          blockElement.style.height = `${Math.max(originalHeight, height)}px`;
+          blockElement.style.top = `${y}px`;
+          blockElement.style.left = `${x}px`;
+
+          blockElement.setAttribute(
+            'data-width',
+            Math.max(originalWidth, width)
+          );
+          blockElement.setAttribute(
+            'data-height',
+            Math.max(originalHeight, height)
+          );
+        }
+      });
+
       displayResult(result);
     }
   }, 200);
