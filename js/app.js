@@ -1,4 +1,4 @@
-import blocks from '../blocks.json';
+import blocks from '../blocks.json' assert { type: 'json' };
 
 function randomColor() {
   const letters = '0123456789ABCDEF';
