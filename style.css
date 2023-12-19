@@ -1,7 +1,11 @@
+    body {
+        margin: 0;
+    }
+
     #container {
         position: relative;
         width: 100vw;
-        height: 100vh;
+        height: calc(100vh - 20px);
         border: 1px solid black;
     }
 
@@ -18,4 +22,5 @@
 
     .fullness-text {
         display: block;
+        height: 20px;
     }

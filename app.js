@@ -7,41 +7,31 @@ function randomColor() {
   return color;
 }
 
-// Функція для генерації хешу розмірів та повороту блоку
 function getBlockHash(block) {
   return `${block.width}-${block.height}-${block.rotation || 0}`;
 }
 
-// Функція для розміщення блоків у контейнері
 function efficientBlockPlacement(blocks, container) {
-  // Сортуємо блоки в порядку спадання їх площі
   blocks.sort((a, b) => b.width * b.height - a.width * a.height);
 
-  // Ініціалізуємо змінні для результатів
   let fullness = 0;
   const blockCoordinates = [];
-  const sizeColors = {}; // Об'єкт для зберігання кольорів за розміром
+  const sizeColors = {};
 
-  // Вираховуємо координати для кожного блоку
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i];
     let placed = false;
     const blockHash = getBlockHash(block);
-
-    // Перевіряємо, чи у нас вже є колір для цього блоку
     let color = sizeColors[blockHash];
 
     if (!color) {
-      // Якщо немає коліра, генеруємо новий
       color = randomColor();
       sizeColors[blockHash] = color;
     }
 
-    const rotations = block.rotation ? [block.rotation, 0] : [0]; // Додаємо 0 градусів для блоків, які не повертаються
+    const rotations = block.rotation ? [block.rotation, 0] : [0, 90];
 
-    // Перевіряємо розміщення блока з різними кутами повороту
     for (let rotation of rotations) {
-      // Перевіряємо кожну позицію у контейнері
       for (
         let y = 0;
         y <=
@@ -56,22 +46,18 @@ function efficientBlockPlacement(blocks, container) {
               (rotation % 180 === 90 ? block.height : block.width) && !placed;
           x++
         ) {
-          // Перевіряємо, чи блок не перекривається з іншими вже розміщеними блоками
           if (!blocksOverlap(x, y, block, blockCoordinates, rotation)) {
-            // Додаємо блок у список розміщених
             blockCoordinates.push({
               top: y,
               left: x,
               right: x + (rotation % 180 === 90 ? block.height : block.width),
               bottom: y + (rotation % 180 === 90 ? block.width : block.height),
               initialOrder: i + 1,
-              color: color, // Встановлюємо колір
+              color: color,
+              rotation: rotation, // Додано збереження кута повороту
             });
 
-            // Оновлюємо коефіцієнт корисного використання простору
             fullness = calculateFullness(container, blockCoordinates);
-
-            // Встановлюємо прапорець, що блок розміщений
             placed = true;
           }
         }
@@ -79,68 +65,105 @@ function efficientBlockPlacement(blocks, container) {
     }
   }
 
-  // Повертаємо результат
   return {
     fullness: fullness,
     blockCoordinates: blockCoordinates,
   };
 }
 
-// Функція для перевірки перекривання блоків
-function blocksOverlap(x, y, block, blockCoordinates) {
+function rotateCoordinates(x, y, rotation) {
+  if (rotation === 90) {
+    return { x: y, y: -x };
+  }
+  return { x, y };
+}
+
+function blocksOverlap(x, y, block, blockCoordinates, rotation) {
   for (let i = 0; i < blockCoordinates.length; i++) {
     let coord = blockCoordinates[i];
+
+    // Поворот координат для врахування повороту блоків
+    let rotatedCoord = rotateCoordinates(x, y, rotation);
+
     if (
-      x < coord.right &&
-      x + block.width > coord.left &&
-      y < coord.bottom &&
-      y + block.height > coord.top
+      rotatedCoord.x < coord.right &&
+      rotatedCoord.x + block.width > coord.left &&
+      rotatedCoord.y < coord.bottom &&
+      rotatedCoord.y + block.height > coord.top
     ) {
-      return true; // Блоки перекриваються
+      return true;
     }
   }
-  return false; // Блоки не перекриваються
+  return false;
 }
 
-// Функція для розрахунку коефіцієнта корисного використання простору
 function calculateFullness(container, blockCoordinates) {
   const totalArea = container.width * container.height;
-  let emptyArea = 0;
+  let emptyArea = totalArea;
 
-  // Розраховуємо площу порожнин в середині контейнера
-  for (let y = 1; y < container.height - 1; y++) {
-    for (let x = 1; x < container.width - 1; x++) {
-      if (!blocksOverlap(x, y, { width: 1, height: 1 }, blockCoordinates)) {
-        emptyArea++;
-      }
-    }
+  for (let i = 0; i < blockCoordinates.length; i++) {
+    const coord = blockCoordinates[i];
+    emptyArea -= (coord.right - coord.left) * (coord.bottom - coord.top);
   }
 
-  // Розраховуємо та повертаємо коефіцієнт корисного використання простору
-  return 1 - emptyArea / (emptyArea + totalArea);
+  return 1 - emptyArea / totalArea;
 }
+
 const fullnessContainer = document.querySelector('.fullness-text');
 const containerElement = document.getElementById('container');
 
-function displayResult(result) {
-  // Виводимо коефіцієнт корисного використання простору
-  fullnessContainer.textContent = result.fullness;
+const blockStyles = {
+  position: 'absolute',
+  transformOrigin: 'top left',
+};
 
-  // Виводимо блоки у контейнері
-  result.blockCoordinates.forEach((coord) => {
-    let blockElement = document.createElement('div');
-    blockElement.className = 'block';
-    blockElement.style.width = coord.right - coord.left + 'px';
-    blockElement.style.height = coord.bottom - coord.top + 'px';
-    blockElement.style.top = coord.top + 'px';
-    blockElement.style.left = coord.left + 'px';
-    blockElement.style.background = coord.color; // Задаємо колір
-    blockElement.innerText = coord.initialOrder;
-    containerElement.appendChild(blockElement);
-  });
+function rotateCoordinates(x, y, rotation) {
+  if (rotation === 90) {
+    return { x: y, y: -x };
+  }
+  return { x, y };
 }
 
-// Приклад використання
+function displayResult(result) {
+  fullnessContainer.textContent = result.fullness;
+
+  const fragment = document.createDocumentFragment();
+  result.blockCoordinates.forEach((coord) => {
+    const rotatedCoord = rotateCoordinates(
+      coord.left,
+      coord.top,
+      coord.rotation
+    );
+    const width =
+      coord.rotation === 90
+        ? coord.bottom - coord.top
+        : coord.right - coord.left;
+    const height =
+      coord.rotation === 90
+        ? coord.right - coord.left
+        : coord.bottom - coord.top;
+
+    const blockElement = document.createElement('div');
+    blockElement.className = 'block';
+    blockElement.style.width = `${width}px`;
+    blockElement.style.height = `${height}px`;
+    blockElement.style.top = `${rotatedCoord.y}px`;
+    blockElement.style.left = `${rotatedCoord.x}px`;
+    blockElement.style.background = coord.color;
+    blockElement.innerText = coord.initialOrder;
+
+    Object.assign(blockElement.style, blockStyles);
+    if (coord.rotation === 90) {
+      blockElement.style.transform = 'rotate(90deg)';
+    }
+
+    fragment.appendChild(blockElement);
+  });
+
+  containerElement.innerHTML = '';
+  containerElement.appendChild(fragment);
+}
+
 const blocks = [
   { width: 190, height: 90 },
   { width: 190, height: 90 },
@@ -160,29 +183,29 @@ const blocks = [
   { width: 85, height: 93 },
   { width: 75, height: 115 } /* інші блоки */,
 ];
+
 const container = {
   width: containerElement.offsetWidth,
   height: containerElement.offsetHeight,
 };
 
-// Викликаємо функцію та відображаємо результат
 let result = efficientBlockPlacement(blocks, container);
 displayResult(result);
 
-// Збереження попередніх блоків
 const previousBlocks = blocks.slice();
+let resizeTimeout;
 
-// Обробник події для перерахунку розташування блоків при зміні розміру вікна
 window.addEventListener('resize', function () {
-  // Очищаємо контейнер перед перерахунком
-  if (containerElement) {
-    containerElement.innerHTML = '';
-    // Отримуємо новий розмір вікна
-    container.width = containerElement.offsetWidth;
-    container.height = containerElement.offsetHeight;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(function () {
+    if (containerElement) {
+      containerElement.innerHTML = '';
+      container.width = containerElement.offsetWidth;
+      container.height = containerElement.offsetHeight;
 
-    // Викликаємо функцію та відображаємо оновлений результат
-    result = efficientBlockPlacement(previousBlocks, container);
-    displayResult(result);
-  }
+      previousBlocks.sort((a, b) => b.width * b.height - a.width * a.height);
+      result = efficientBlockPlacement(previousBlocks, container);
+      displayResult(result);
+    }
+  }, 200);
 });
