@@ -170,7 +170,6 @@ const container = {
 let result = efficientBlockPlacement(blocks, container);
 displayResult(result);
 
-const previousBlocks = blocks.slice();
 let resizeTimeout;
 
 window.addEventListener('resize', function () {
